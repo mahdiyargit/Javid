@@ -1,9 +1,10 @@
-﻿using Grasshopper.Kernel;
+﻿using System;
+using System.Drawing;
+using Grasshopper.Kernel;
 using Javid.Parameter;
+using Javid.Properties;
 using Rhino;
 using Rhino.Display;
-using System;
-using System.Drawing;
 
 namespace Javid.BitmapComponents
 {
@@ -50,7 +51,7 @@ namespace Javid.BitmapComponents
         }
 
         public override GH_Exposure Exposure => GH_Exposure.primary;
-        protected override Bitmap Icon => null;
+        protected override Bitmap Icon => Resources.viewCapture;
         public override Guid ComponentGuid => new Guid("C757EFA8-C0E8-4122-8E2D-671A4DE1F6B5");
     }
 }

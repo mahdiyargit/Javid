@@ -1,8 +1,10 @@
-﻿using Grasshopper.Kernel;
-using Javid.Parameter;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Net;
+using Grasshopper.Kernel;
+using Javid.Parameter;
+using Javid.Properties;
+
 namespace Javid.BitmapComponents
 {
     public class DownloadBitmapComp : GH_Component
@@ -45,7 +47,7 @@ namespace Javid.BitmapComponents
             }
         }
         public override GH_Exposure Exposure => GH_Exposure.primary;
-        protected override Bitmap Icon => null;
+        protected override Bitmap Icon => Resources.download;
         public override Guid ComponentGuid => new Guid("B7FC16C7-405E-43F9-B2DD-518B39F60AAE");
     }
 }

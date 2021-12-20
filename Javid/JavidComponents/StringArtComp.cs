@@ -1,14 +1,16 @@
 ﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Geometry;
 using Grasshopper.Kernel.Parameters;
+using Grasshopper.Kernel.Types;
 using Javid.Parameter;
+using Javid.Properties;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Threading.Tasks;
-using Plane = Rhino.Geometry.Plane;
 
 namespace Javid.JavidComponents
 {
@@ -52,7 +54,7 @@ namespace Javid.JavidComponents
         {
             pManager.AddGenericParameter("PinsOrder", "Pins", "Order of the pins", GH_ParamAccess.item);
             pManager.AddLineParameter("Lines", "Lines", "Strings created the output bitmap", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Bitmap", "Bitmap", "Bitmap", GH_ParamAccess.item);
+            pManager.AddParameter(new GH_BitmapParam(), "Bitmap", "Bitmap", "Bitmap", GH_ParamAccess.item);
         }
         protected override void SolveInstance(IGH_DataAccess da)
         {
@@ -84,22 +86,17 @@ namespace Javid.JavidComponents
                 var bmpMemory = new GH_MemoryBitmap(bmp);
                 bmpMemory.Filter_GreyScale();
                 bmpMemory.Release(true);
-                var rec = new Rectangle3d(Plane.WorldXY, bmp.Width - 1, bmp.Height - 1);
-                _pinPoints = Point3d.CullDuplicates(pts, 1.0).Where(p => rec.Contains(p) == PointContainment.Inside)
+                _pinPoints = Point3d.CullDuplicates(pts, 1.05).Where(p => bmp.ToRectangle3d().Contains(p) == PointContainment.Inside)
                     .ToArray();
-                if (_pinPoints.Length == 0)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No point inside region");
-                    return;
-                }
+                if (_pinPoints.Length == 0) return;
                 if (_pinPoints.Length != pts.Count)
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some points was outside region or closer than 1.0 unit to other points");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Some points were outside the region or closer than 1.0 units to other points");
                 var bbox = new BoundingBox(_pinPoints);
                 var x = (int)bbox.Min.X;
                 var y = (int)(bmp.Height - bbox.Max.Y);
                 var width = (int)bbox.Max.X - x;
                 var height = (int)(bbox.Max.Y - bbox.Min.Y);
-                _bmp = bmp.Clone(new Rectangle(x, y - 2, width, height + 2), bmp.PixelFormat);
+                _bmp = bmp.Clone(new Rectangle(x, y, width, height), bmp.PixelFormat);
                 _oBmp = new Bitmap(_bmp.Width, _bmp.Height);
                 using (var graphics = Graphics.FromImage(_oBmp))
                 {
@@ -119,6 +116,11 @@ namespace Javid.JavidComponents
                 _pairs = new HashSet<Pair>();
                 _lines = new List<Line>();
             }
+            if (_pinPoints.Length == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No point inside the region");
+                return;
+            }
             if (run && _pins.Count < lineCount)
             {
                 for (var k = 0; k < iterations; k++)
@@ -126,19 +128,27 @@ namespace Javid.JavidComponents
                     var lastPin = _pins.Last();
                     var lastPins = _pins.Skip(_pins.Count - Math.Max(1, skipLatest));
                     var linesDarkness = new int[_pinNodes.Length];
-                    var bmpMemory = new GH_MemoryBitmap(_bmp);
-                    Parallel.For(0, _pinNodes.Length, i =>
+                    var bmpMemory = new GH_MemoryBitmap(_bmp, WrapMode.Clamp);
+                    try
                     {
-                        if (lastPins.Contains(i) ||
-                            Math.Abs(lastPin - i) < skipNeighbors ||
-                            _pairs.Contains(new Pair(lastPin, i))) return;
-                        var points = DivideLine2(lastPin, i);
-                        if (method == 0)
-                            linesDarkness[i] = (int)points.Average(p => 255 - bmpMemory.R((int)p.x, (int)p.y));
-                        else
-                            linesDarkness[i] = points.Sum(p => 255 - bmpMemory.R((int)p.x, (int)p.y));
-                    });
-                    bmpMemory.Release(false);
+                        Parallel.For(0, _pinNodes.Length, i =>
+                        {
+                            if (lastPins.Contains(i) ||
+                                Math.Abs(lastPin - i) < skipNeighbors ||
+                                _pairs.Contains(new Pair(lastPin, i))) return;
+                            var points = DivideLine2(lastPin, i).ToArray();
+                            if (!points.Any())
+                                linesDarkness[i] = 0;
+                            else if (method == 0)
+                                linesDarkness[i] = (int)points.Average(p => bmpMemory.PixelValue(p));
+                            else
+                                linesDarkness[i] = points.Sum(p => bmpMemory.PixelValue(p));
+                        });
+                    }
+                    finally
+                    {
+                        bmpMemory.Release(false);
+                    }
                     var nextPin = Array.IndexOf(linesDarkness, linesDarkness.Max());
                     using (var graphics = Graphics.FromImage(_bmp))
                     {
@@ -158,8 +168,8 @@ namespace Javid.JavidComponents
                 }
                 ExpireSolution(true);
             }
-            da.SetDataList(0, _pins);
-            da.SetDataList(1, _lines);
+            da.SetDataList(0, _pins.Select(i => new GH_Integer(i)));
+            da.SetDataList(1, _lines.Select(line => new GH_Line(line)));
             da.SetData(2, _oBmp);
         }
         private IEnumerable<Node2> DivideLine2(int start, int end)
@@ -173,7 +183,7 @@ namespace Javid.JavidComponents
                 return (1 - f) * _pinNodes[start] + f * _pinNodes[end];
             });
         }
-        protected override Bitmap Icon => null;
+        protected override Bitmap Icon => Resources.stringArt;
         public override Guid ComponentGuid => new Guid("21ACEC0B-B54C-47B7-BF77-6F9C2F998863");
     }
 }

@@ -1,8 +1,11 @@
 ﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Javid.Parameter;
+using Javid.Properties;
 using System;
 using System.Drawing;
 using System.Linq;
+
 namespace Javid.JavidComponents
 {
     public class AsciiComp : GH_Component
@@ -53,7 +56,7 @@ namespace Javid.JavidComponents
                     break;
                 }
             }
-            da.SetDataList(0, Enumerable.Range(0, ey).Select(i => output.Substring(i * ex, ex)));
+            da.SetDataList(0, Enumerable.Range(0, ey).Select(i => new GH_String(output.Substring(i * ex, ex))));
         }
         public static string Reverse(string s)
         {
@@ -61,7 +64,7 @@ namespace Javid.JavidComponents
             Array.Reverse(charArray);
             return new string(charArray);
         }
-        protected override Bitmap Icon => null;
+        protected override Bitmap Icon => Resources.ascii;
         public override Guid ComponentGuid => new Guid("4D1E1ABD-911E-4BA9-BD6C-8C8A444AB6FF");
     }
 }

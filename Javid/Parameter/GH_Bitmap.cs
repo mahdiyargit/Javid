@@ -1,8 +1,9 @@
-﻿using System.Drawing;
-using GH_IO.Serialization;
+﻿using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
+using Javid.Parameter;
 using Rhino.Geometry;
-
+using System.ComponentModel;
+using System.Drawing;
 namespace Javid.Parameter
 {
     public class GH_Bitmap : GH_Goo<Bitmap>
@@ -10,6 +11,7 @@ namespace Javid.Parameter
         public GH_Bitmap() { }
         public GH_Bitmap(Bitmap bitmap) => m_value = bitmap;
         public GH_Bitmap(GH_Bitmap ghBitmap) => m_value = ghBitmap.m_value;
+        public override IGH_GooProxy EmitProxy() => new GH_BitmapProxy(this);
         public override bool CastFrom(object source)
         {
             switch (source)
@@ -27,36 +29,41 @@ namespace Javid.Parameter
                     return false;
             }
         }
-        public override bool CastTo<Q>(ref Q target)
+        public override bool CastTo<T>(ref T target)
         {
-            if (typeof(Q).IsAssignableFrom(typeof(GH_Rectangle)))
+            if (typeof(T).IsAssignableFrom(typeof(GH_Rectangle)))
             {
-                target = (Q)(object)new GH_Rectangle(new Rectangle3d(Plane.WorldXY, m_value.Width - 1, m_value.Height - 1));
+                target = (T)(object)new GH_Rectangle(m_value.ToRectangle3d());
                 return true;
             }
-            if (typeof(Q).IsAssignableFrom(typeof(GH_Mesh)))
+            if (typeof(T).IsAssignableFrom(typeof(GH_Mesh)))
             {
-                target = (Q)(object)new GH_Mesh(m_value.ToMesh());
+                target = (T)(object)new GH_Mesh(m_value.ToMesh());
                 return true;
             }
-            if (typeof(Q).IsAssignableFrom(typeof(Bitmap)))
+            if (typeof(T).IsAssignableFrom(typeof(Bitmap)))
             {
-                target = (Q)(object)m_value;
+                target = (T)(object)m_value;
                 return true;
             }
-            if (typeof(Q).IsAssignableFrom(typeof(GH_Point)))
+            if (typeof(T).IsAssignableFrom(typeof(GH_Point)))
             {
-                target = (Q)(object)new GH_Point(new Point3d((m_value.Width - 1) * 0.5, (m_value.Height - 1) * 0.5, 0.0));
+                target = (T)(object)new GH_Point(new Point3d((m_value.Width - 1) * 0.5, (m_value.Height - 1) * 0.5, 0.0));
                 return true;
             }
-            if (typeof(Q).IsAssignableFrom(typeof(GH_Plane)))
+            if (typeof(T).IsAssignableFrom(typeof(GH_Plane)))
             {
-                target = (Q)(object)new GH_Plane(new Plane(new Point3d((m_value.Width - 1) * 0.5, (m_value.Height - 1) * 0.5, 0.0), Vector3d.ZAxis));
+                target = (T)(object)new GH_Plane(new Plane(new Point3d((m_value.Width - 1) * 0.5, (m_value.Height - 1) * 0.5, 0.0), Vector3d.ZAxis));
                 return true;
             }
-            if (typeof(Q).IsAssignableFrom(typeof(GH_Surface)))
+            if (typeof(T).IsAssignableFrom(typeof(GH_Surface)))
             {
-                target = (Q)(object)new GH_Surface(new PlaneSurface(Plane.WorldXY, new Interval(0, m_value.Width - 1), new Interval(0, m_value.Height - 1)));
+                target = (T)(object)new GH_Surface(new PlaneSurface(Plane.WorldXY, new Interval(0, m_value.Width - 1), new Interval(0, m_value.Height - 1)));
+                return true;
+            }
+            if (typeof(T).IsAssignableFrom(typeof(GH_Interval2D)))
+            {
+                target = (T)(object)new GH_Interval2D(m_value.ToUVInterval());
                 return true;
             }
             return false;
@@ -73,9 +80,22 @@ namespace Javid.Parameter
             return true;
         }
         public override IGH_Goo Duplicate() => new GH_Bitmap(m_value);
-        public override string ToString() => $"Bitmap (w={m_value.Width}, h={m_value.Height})";
+        public override string ToString() => m_value == null ? "Null Bitmap" : $"Bitmap (w={m_value.Width}, h={m_value.Height})";
         public override bool IsValid => !(m_value is null);
         public override string TypeName => "Bitmap";
         public override string TypeDescription => "Bitmap";
     }
+}
+public class GH_BitmapProxy : GH_GooProxy<GH_Bitmap>
+{
+    public GH_BitmapProxy(GH_Bitmap owner) : base(owner) { }
+    public override void Construct()
+    {
+        var bitmap = GH_BitmapGetter.GetBitmap();
+        if (bitmap == null) return;
+        Owner.Value = bitmap.Value;
+    }
+    [Description("Bitmap")]
+    [Category("Properties")]
+    public Bitmap Bitmap => Owner.Value;
 }

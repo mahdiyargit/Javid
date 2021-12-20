@@ -1,60 +1,70 @@
-﻿using Grasshopper;
+﻿using GH_IO.Serialization;
+using Grasshopper;
 using Grasshopper.Kernel;
 using Javid.Parameter;
+using Javid.Properties;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+
 namespace Javid.BitmapComponents
 {
     public class PreviewBitmapComp : GH_Component
     {
         public Bitmap DisplayImage;
-        public PreviewBitmapComp() : base("Preview Bitmap", "Preview Bitmap", "Preview Bitmap", "Javid", "Javid")
+        public bool LockAspect;
+        public PreviewBitmapComp() : base("Preview Bitmap", "Preview Bitmap", "Preview Bitmap", "Javid", "Bitmap")
         {
         }
-        protected override void RegisterInputParams(GH_InputParamManager pManager)
-        {
-            pManager.AddParameter(new GH_BitmapParam(), "Bitmap", "B", "Bitmap", GH_ParamAccess.item);
-        }
+        protected override void RegisterInputParams(GH_InputParamManager pManager) => pManager.AddParameter(new GH_BitmapParam(), "Bitmap", "B", "Bitmap", GH_ParamAccess.item);
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
         }
         protected override void BeforeSolveInstance() => DisplayImage = null;
-        protected override void SolveInstance(IGH_DataAccess da)
-        {
-            da.GetData(0, ref DisplayImage);
-        }
+        protected override void SolveInstance(IGH_DataAccess da) => da.GetData(0, ref DisplayImage);
         public override void CreateAttributes() => m_attributes = new PreviewBitmapAttributes(this);
         public override void AppendAdditionalMenuItems(ToolStripDropDown menu)
         {
-            Menu_AppendItem(menu, "200%", Menu_Clicked);
-            Menu_AppendItem(menu, "100%", Menu_Clicked);
-            Menu_AppendItem(menu, "50%", Menu_Clicked);
-            Menu_AppendItem(menu, "25%", Menu_Clicked);
-            Menu_AppendItem(menu, "Save As", Save_Clicked);
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(menu, "Maintain Aspect Ratio", Lock_Clicked,
+                LockAspect ? Resources.locked : Resources.unlocked, DisplayImage != null, LockAspect);
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(menu, "200%", Menu_Clicked, Resources.zoomIn);
+            Menu_AppendItem(menu, "100%", Menu_Clicked, Resources.zoom);
+            Menu_AppendItem(menu, "50%", Menu_Clicked, Resources.zoomout);
+            Menu_AppendItem(menu, "25%", Menu_Clicked, Resources.zoomout);
+            Menu_AppendSeparator(menu);
+            Menu_AppendItem(menu, "Save As", Save_Clicked, Resources.save);
+        }
+        private void Lock_Clicked(object sender, EventArgs e)
+        {
+            RecordUndoEvent("Maintain Aspect Ratio");
+            LockAspect = !LockAspect;
+            if (!LockAspect) return;
+            Attributes.ExpireLayout();
+            Instances.RedrawCanvas();
         }
         private void Menu_Clicked(object sender, EventArgs e)
         {
             if (DisplayImage is null) return;
-            double factor = 1;
+            var factor = 1f;
             switch (((ToolStripMenuItem)sender).Text)
             {
                 case "200%":
-                    factor = 2;
+                    factor = 2f;
                     break;
                 case "100%":
-                    factor = 1;
+                    factor = 1f;
                     break;
                 case "50%":
-                    factor = 0.5;
+                    factor = 0.5f;
                     break;
                 case "25%":
-                    factor = 0.25;
+                    factor = 0.25f;
                     break;
             }
-            Attributes.Bounds = new Rectangle(0, 0, (int)(DisplayImage.Width * factor + Params.InputWidth) + 4, (int)(DisplayImage.Height * factor));
-            Attributes.Bounds.Inflate(6f, 6f);
+            Attributes.Bounds = new RectangleF(0, 0, (DisplayImage.Width * factor) + Params.InputWidth + 4f, DisplayImage.Height * factor);
             Attributes.ExpireLayout();
             Instances.RedrawCanvas();
         }
@@ -87,8 +97,18 @@ namespace Javid.BitmapComponents
             fileStream.Close();
             ExpireSolution(true);
         }
-        public override GH_Exposure Exposure => GH_Exposure.secondary;
-        protected override Bitmap Icon => null;
+        public override GH_Exposure Exposure => GH_Exposure.tertiary;
+        protected override Bitmap Icon => Resources.preview;
         public override Guid ComponentGuid => new Guid("0F2BCCEF-6974-4BDE-AEFA-704E2A450A0B");
+        public override bool Write(GH_IWriter writer)
+        {
+            writer.SetBoolean("LockAspect", LockAspect);
+            return base.Write(writer);
+        }
+        public override bool Read(GH_IReader reader)
+        {
+            reader.TryGetBoolean("LockAspect", ref LockAspect);
+            return base.Read(reader);
+        }
     }
 }

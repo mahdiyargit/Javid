@@ -1,12 +1,13 @@
 ﻿using Grasshopper.Kernel;
 using System;
 using System.Drawing;
+
 namespace Javid
 {
     public class JavidInfo : GH_AssemblyInfo
     {
         public override string Name => "Javid";
-        public override string AssemblyVersion => "0.1.0";
+        public override string AssemblyVersion => "1.1.0";
         public override Bitmap Icon => null;
         public override string Description =>
             "JAVID is an open-source graphic design and image-processing Grasshopper plug-in, " +

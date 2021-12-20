@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-using Grasshopper;
+﻿using Grasshopper;
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Attributes;
-
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
 namespace Javid.BitmapComponents
 {
     public sealed class PreviewBitmapAttributes : GH_ResizableAttributes<PreviewBitmapComp>
     {
         private Rectangle _bmpBox;
-        public PreviewBitmapAttributes(PreviewBitmapComp owner) : base(owner)
-        {
-            Bounds = new Rectangle(0, 0, 150, 150);
-            Bounds.Inflate(6f, 6f);
-        }
+        public PreviewBitmapAttributes(PreviewBitmapComp owner) : base(owner) => Bounds = new Rectangle(0, 0, 150, 150);
         public override void AppendToAttributeTree(List<IGH_Attributes> attributes)
         {
             base.AppendToAttributeTree(attributes);
@@ -27,9 +22,8 @@ namespace Javid.BitmapComponents
         public override GH_ObjectResponse RespondToMouseDoubleClick(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             Bounds = Owner.DisplayImage is null
-                ? new Rectangle(0, 0, 150, 150)
-                : new Rectangle(0, 0, Owner.DisplayImage.Width + (int)Owner.Params.InputWidth + 4, Owner.DisplayImage.Height);
-            Bounds.Inflate(6f, 6f);
+                ? new RectangleF(0, 0, 150, 150)
+                : new RectangleF(0, 0, Owner.DisplayImage.Width + Owner.Params.InputWidth + 4f, Owner.DisplayImage.Height);
             ExpireLayout();
             Instances.RedrawCanvas();
             return GH_ObjectResponse.Handled;
@@ -37,21 +31,21 @@ namespace Javid.BitmapComponents
         protected override void Layout()
         {
             base.Layout();
-            var bounds = Bounds;
-            GH_ComponentAttributes.LayoutInputParams(Owner, bounds);
-            bounds.X += Owner.Params.InputWidth + 4f;
-            GH_ComponentAttributes.LayoutInputParams(Owner, bounds);
             var w = Math.Max(Bounds.Width, MinimumSize.Width);
             var h = Math.Max(Bounds.Height, MinimumSize.Height);
+            if (Owner.LockAspect && Owner.DisplayImage != null)
+                h = Owner.DisplayImage.Height * (w - Owner.Params.InputWidth - 4f) / Owner.DisplayImage.Width;
             Bounds = new RectangleF(Pivot.X, Pivot.Y, w, h);
+            var bounds = Bounds;
+            GH_ComponentAttributes.LayoutInputParams(Owner, bounds);
+            bounds.X += Owner.Params.InputWidth + 4;
+            GH_ComponentAttributes.LayoutInputParams(Owner, bounds);
             var left = Owner.Params.Input[0].Attributes.Bounds.Right;
             var right = Bounds.Right;
-            var top = Bounds.Top;
-            var bottom = Bounds.Bottom;
-            _bmpBox = right <= left + 1.0 ? Rectangle.Empty : GH_Convert.ToRectangle(RectangleF.FromLTRB(left, top, right, bottom));
+            _bmpBox = right <= left + 1.0 ? Rectangle.Empty : GH_Convert.ToRectangle(RectangleF.FromLTRB(left, Bounds.Top, right, Bounds.Bottom));
         }
         protected override Size MinimumSize => new Size(100, 100);
-        protected override Padding SizingBorders => new Padding(0, 6, 6, 6);
+        protected override Padding SizingBorders => Owner.LockAspect ? new Padding(0, 0, 10, 0) : new Padding(0, 10, 10, 10);
         protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
         {
             switch (channel)
@@ -86,7 +80,7 @@ namespace Javid.BitmapComponents
                     {
                         var destRect = (RectangleF)rec;
                         destRect.Inflate(1f, 1f);
-                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
                         var displayImage = Owner.DisplayImage;
                         graphics.DrawImage(displayImage, destRect, new RectangleF(-0.5f, -0.5f, displayImage.Width, displayImage.Height),
                             GraphicsUnit.Pixel);

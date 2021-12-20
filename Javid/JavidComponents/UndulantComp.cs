@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Javid.Parameter;
+using Javid.Properties;
+using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Grasshopper.Kernel;
-using Javid.Parameter;
-using Rhino.Geometry;
-
 namespace Javid.JavidComponents
 {
     public class UndulantComp : GH_Component
@@ -26,6 +27,8 @@ namespace Javid.JavidComponents
         }
         protected override void SolveInstance(IGH_DataAccess da)
         {
+            const int count = 30;
+            const double step = 1.0 / count;
             Bitmap bmp = null;
             var ex = 75;
             var ey = 75;
@@ -33,8 +36,7 @@ namespace Javid.JavidComponents
             if (!da.GetData(0, ref bmp) ||
                 !da.GetData(1, ref ex) ||
                 !da.GetData(2, ref ey) ||
-                !da.GetData(3, ref amp))
-                return;
+                !da.GetData(3, ref amp)) return;
             double width = bmp.Width - 1;
             double height = bmp.Height - 1;
             var rec = new Rectangle3d(Plane.WorldXY, width, height);
@@ -71,28 +73,26 @@ namespace Javid.JavidComponents
                     waveLength[i][j] = Math.Round(b[i][j] * 7) * 2 * Math.PI;
                 }
             }
-            var pls = new NurbsCurve[ey];
+            var pls = new GH_Curve[ey];
             for (var i = 0; i < ey; i++)
             {
                 var pts = new List<Point3d>();
                 for (var j = 0; j < ex; j++)
                 {
                     var line = polyLines[i].SegmentAt(j);
-                    line.ToNurbsCurve().DivideByCount(30, true, out var points);
-                    var step = 1 / (double)points.Length;
-                    for (var k = 0; k < points.Length; k++)
+                    pts.AddRange(Enumerable.Range(0, count).Select(n =>
                     {
-                        var point = points[k];
-                        points[k].Y += Math.Sin(waveLength[i][j] * k * step) * amp * yScale;
-                    }
-                    pts.AddRange(points);
+                        var t = n * step;
+                        var pt = line.PointAt(t);
+                        pt.Y += Math.Sin(waveLength[i][j] * t) * amp * yScale;
+                        return pt;
+                    }));
                 }
-                pls[i] = new Polyline(pts).ToNurbsCurve();
+                pls[i] = new GH_Curve(new Polyline(pts).ToNurbsCurve());
             }
-
             da.SetDataList(0, pls);
         }
-        protected override Bitmap Icon => null;
+        protected override Bitmap Icon => Resources.undulant;
         public override Guid ComponentGuid => new Guid("B7CB593F-05B4-4FB8-9A10-7204298FCB98");
     }
 }
