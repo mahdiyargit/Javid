@@ -69,9 +69,9 @@ namespace Javid.BitmapComponents
         public override void AppendAdditionalMenuItems(ToolStripDropDown menu)
         {
             Menu_AppendSeparator(menu);
-            Menu_AppendItem(menu, "Clamp", Menu_ClampClicked, Resources.Clamp, true, _wrapMode == WrapMode.Clamp);
-            Menu_AppendItem(menu, "Tile", Menu_TileClicked, Resources.Tile, true, _wrapMode == WrapMode.Tile);
-            Menu_AppendItem(menu, "Flip", Menu_FlipClicked, Resources.Flip, true, _wrapMode == WrapMode.TileFlipXY);
+            Menu_AppendItem(menu, "Clamp", Menu_ClampClicked, Resources.clamp, true, _wrapMode == WrapMode.Clamp);
+            Menu_AppendItem(menu, "Tile", Menu_TileClicked, Resources.tile, true, _wrapMode == WrapMode.Tile);
+            Menu_AppendItem(menu, "Flip", Menu_FlipClicked, Resources.flip, true, _wrapMode == WrapMode.TileFlipXY);
             Menu_AppendSeparator(menu);
             Menu_AppendItem(menu, "Interpolate", Menu_InterpolateClicked, true, _interpolate);
         }

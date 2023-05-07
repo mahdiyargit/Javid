@@ -34,7 +34,7 @@ namespace Javid.BitmapComponents
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Image file does not exist.");
                 return;
             }
-            da.SetData(0, new Bitmap(path));
+            da.SetData(0, Converter.GH_BitmapFromFile(path));
         }
 
         public override GH_Exposure Exposure => GH_Exposure.primary;

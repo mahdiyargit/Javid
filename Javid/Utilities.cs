@@ -3,6 +3,7 @@ using System.Linq;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Geometry;
 using Grasshopper.Kernel.Types;
+using Javid.Parameter;
 using Rhino.Geometry;
 using Plane = Rhino.Geometry.Plane;
 
@@ -76,6 +77,11 @@ namespace Javid
             var c = Color.Transparent;
             bmpMemory.Sample((int)p.x, (int)p.y, ref c);
             return 255 - c.R;
+        }
+        public static GH_Bitmap GH_BitmapFromFile(string path)
+        {
+            using (var img = Image.FromFile(path))
+                return new GH_Bitmap(new Bitmap(img));
         }
     }
 }
