@@ -28,7 +28,7 @@ namespace Javid.BitmapComponents
         }
         protected override void SolveInstance(IGH_DataAccess da)
         {
-            Bitmap bmp = null;
+            Bitmap bmp = null;  
             var rec = Rectangle3d.Unset;
             var sx = double.NaN;
             var sy = double.NaN;
@@ -87,7 +87,6 @@ namespace Javid.BitmapComponents
                     g.DrawImage(cropped, 0, 0, scaled.Width, scaled.Height);
                 }
             }
-
             da.SetData(0, scaled);
         }
         public override GH_Exposure Exposure => GH_Exposure.secondary;

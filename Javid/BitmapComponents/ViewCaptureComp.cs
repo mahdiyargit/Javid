@@ -10,7 +10,7 @@ namespace Javid.BitmapComponents
 {
     public class ViewCaptureComp : GH_Component
     {
-        public ViewCaptureComp() : base("View Capture", "View Capture", "", "Javid", "Bitmap")
+        public ViewCaptureComp() : base("View Capture", "View Capture", "Generate high resolution output of a RhinoViewport.", "Javid", "Bitmap")
         {
         }
         protected override void RegisterInputParams(GH_InputParamManager pManager)
@@ -34,6 +34,11 @@ namespace Javid.BitmapComponents
             var viewCapture = new ViewCapture();
             var name = string.Empty;
             var view = da.GetData(0, ref name) ? RhinoDoc.ActiveDoc.Views.Find(name, false) : RhinoDoc.ActiveDoc.Views.ActiveView;
+            if (view == null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Specified Viewport not found.");
+                return;
+            }
             var width = 0;
             viewCapture.Width = da.GetData(1, ref width) ? width : view.ActiveViewport.Size.Width;
             var height = 0;
@@ -49,7 +54,6 @@ namespace Javid.BitmapComponents
             viewCapture.TransparentBackground = transparent;
             da.SetData(0, viewCapture.CaptureToBitmap(view));
         }
-
         public override GH_Exposure Exposure => GH_Exposure.primary;
         protected override Bitmap Icon => Resources.viewCapture;
         public override Guid ComponentGuid => new Guid("C757EFA8-C0E8-4122-8E2D-671A4DE1F6B5");

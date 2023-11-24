@@ -1,11 +1,12 @@
-﻿using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
-using Javid.Parameter;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Javid.Parameter;
+using Javid.Properties;
 
 namespace Javid.BitmapComponents
 {
@@ -42,7 +43,7 @@ namespace Javid.BitmapComponents
             bmpMemory.Release(true);
             da.SetData(0, bmp);
         }
-        protected override Bitmap Icon => Properties.Resources.create;
+        protected override Bitmap Icon => Resources.create;
         public override Guid ComponentGuid => new Guid("78CE40E6-95BF-43D4-9357-A1840B730C28");
     }
 }

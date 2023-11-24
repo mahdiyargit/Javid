@@ -1,12 +1,13 @@
-﻿using Grasshopper.Kernel;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Javid.Parameter;
 using Javid.Properties;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+
 namespace Javid.JavidComponents
 {
     public class UndulantComp : GH_Component

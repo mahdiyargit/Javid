@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using Grasshopper.Kernel;
-using Javid.Parameter;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
-using Grasshopper.Kernel.Data;
+using AForge.Video;
 using AForge.Video.DirectShow;
 using Grasshopper;
-using AForge.Video;
 using Grasshopper.GUI;
-using System.Text;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Javid.Parameter;
+using Javid.Properties;
 
 namespace Javid.BitmapComponents
 {
@@ -98,7 +99,8 @@ namespace Javid.BitmapComponents
                 FirstStart();
             }
             m_data.Clear();
-            m_data.Append(new GH_Bitmap(_bmp), new GH_Path(0));
+            if (_bmp != null)
+                m_data.Append(new GH_Bitmap(_bmp), new GH_Path(0));
             if (Play)
                 _doc.ScheduleSolution(_interval, ExpireSolutionCallback);
         }
@@ -216,7 +218,7 @@ namespace Javid.BitmapComponents
         public override void CreateAttributes() => Attributes  = new CameraStreamAttributes(this);
         public override Guid ComponentGuid => new Guid("0CE8AAA1-876D-4120-912D-7577CB8CF4A1");
         public override GH_ParamKind Kind => GH_ParamKind.floating;
-        protected override Bitmap Icon => Properties.Resources.camera;
+        protected override Bitmap Icon => Resources.camera;
         public override GH_ParamData DataType => GH_ParamData.local;
         public override GH_Exposure Exposure => GH_Exposure.primary;
         public override bool IconCapableUI => false;

@@ -1,13 +1,14 @@
-﻿using Grasshopper;
-using Grasshopper.GUI;
-using Grasshopper.GUI.Canvas;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using Grasshopper;
+using Grasshopper.GUI;
+using Grasshopper.GUI.Canvas;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Attributes;
+
 namespace Javid.BitmapComponents
 {
     public sealed class PreviewBitmapAttributes : GH_ResizableAttributes<PreviewBitmapComp>

@@ -1,12 +1,12 @@
-﻿using GH_IO.Serialization;
+﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
+using GH_IO.Serialization;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Javid.Parameter;
 using Javid.Properties;
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Windows.Forms;
 
 namespace Javid.BitmapComponents
 {

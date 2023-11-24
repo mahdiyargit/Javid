@@ -1,11 +1,11 @@
 ﻿using System;
-using Grasshopper.GUI.Canvas;
-using Grasshopper.Kernel;
 using System.Drawing;
-using Grasshopper.GUI;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using Grasshopper.GUI;
+using Grasshopper.GUI.Canvas;
+using Grasshopper.Kernel;
 
 namespace Javid.BitmapComponents
 {

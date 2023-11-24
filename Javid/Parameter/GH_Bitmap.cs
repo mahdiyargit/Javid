@@ -1,9 +1,10 @@
-﻿using GH_IO.Serialization;
+﻿using System.ComponentModel;
+using System.Drawing;
+using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
 using Javid.Parameter;
 using Rhino.Geometry;
-using System.ComponentModel;
-using System.Drawing;
+
 namespace Javid.Parameter
 {
     public class GH_Bitmap : GH_Goo<Bitmap>

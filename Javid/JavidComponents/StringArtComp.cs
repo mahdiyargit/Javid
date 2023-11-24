@@ -1,16 +1,16 @@
-﻿using Grasshopper.Kernel;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Threading.Tasks;
+using Grasshopper.Kernel;
 using Grasshopper.Kernel.Geometry;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Javid.Parameter;
 using Javid.Properties;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Javid.JavidComponents
 {
@@ -123,7 +123,7 @@ namespace Javid.JavidComponents
             }
             if (run && _pins.Count < lineCount)
             {
-                for (var k = 0; k < iterations; k++)
+                for (var _ = 0; _ < iterations; _++)
                 {
                     var lastPin = _pins.Last();
                     var lastPins = _pins.Skip(_pins.Count - Math.Max(1, skipLatest));
